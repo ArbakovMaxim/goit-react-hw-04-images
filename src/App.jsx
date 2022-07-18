@@ -1,112 +1,78 @@
 import { Searchbar } from 'components/Searchbar/Searchbar';
-import { Component } from 'react';
+import { useState } from 'react';
 import { ImageGallery } from './components/ImageGallery/ImageGallery';
 import { apiImage } from './services/api';
 import { Modal } from './components/Modal/Modal';
 import { Spiner } from './components/Spiner/Spiner';
+import { useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    searchValue: '',
-    page: 1,
-    images: [],
-    status: 'idle',
-    error: '',
-    showModal: false,
-    modalImage: null,
-  };
+export const App = () => {
+  const [searchValue, setSearchValue] = useState('');
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.searchValue !== this.state.searchValue ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({
-        status: 'pending',
-      });
-      if (this.state.page === 1) {
-        this.setState({ images: [] });
-      }
-      this.fetchGallery();
+  useEffect(() => {
+    if (searchValue === '') {
+      return;
     }
-  }
-
-  onSubmit = event => {
-    if (event.trim() !== '') {
-      this.setState({
-        searchValue: event,
-        page: 1,
-        status: 'pending',
-      });
-    }
-    this.setState({
-      error: 'В ведите запрос',
-      images: [],
-      status: 'rejected',
-    });
-  };
-
-  toggleModal = largeImageURL => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      modalImage: largeImageURL,
-    }));
-  };
-
-  spiner = () => {
-    this.setState({
-      status: 'rejected',
-    });
-  };
-
-  fetchGallery = () => {
-    const { searchValue, page } = this.state;
-
-    apiImage(searchValue, page)
-      .then(response => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...response],
-          status: 'rejected',
-          error: '',
-        }));
-        if (response.length === 0) {
-          this.setState({
-            error: 'По вашему запросу не чего не найдено!',
-          });
-        }
-      })
-      .catch(error => {
-        this.setState({
-          error: error.message,
-          status: 'rejected',
+    const fetchGallery = () => {
+      apiImage(searchValue, page)
+        .then(response => {
+          setImages(prevState => [...prevState, ...response]);
+          setStatus('rejected');
+          setError('');
+          if (response.length === 0) {
+            setError('По вашему запросу не чего не найдено!');
+          }
+        })
+        .catch(error => {
+          setError(error.message);
+          setStatus('rejected');
         });
-      });
+    };
+    setStatus('pending');
+    if (page === 1) {
+      setImages([]);
+    }
+    fetchGallery();
+  }, [searchValue, page]);
+
+  const onSubmit = event => {
+    if (event.trim() !== '') {
+      setSearchValue(event);
+      setPage(1);
+      setStatus('pending');
+    }
+    setError('В ведите запрос');
+    setImages([]);
+    setStatus('rejected');
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const toggleModal = largeImageURL => {
+    setShowModal(!showModal);
+    setModalImage(largeImageURL);
   };
 
-  render() {
-    const { images, showModal, modalImage, status, error } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.onSubmit} errorStatus={error} />
-        {status === 'pending' && <Spiner />}
-        {/* {error !== '' && <p> {error}</p>} */}
-        {images.length !== 0 && (
-          <ImageGallery
-            loadMore={this.loadMore}
-            imagesInfo={images}
-            toggleModal={this.toggleModal}
-          />
-        )}
-        {showModal && (
-          <Modal image={modalImage} closeModal={this.toggleModal} />
-        )}
-      </>
-    );
-  }
-}
+  const loadMore = () => {
+    setPage(prevState => prevState + 1);
+  };
+
+  return (
+    <>
+      <Searchbar onSubmit={onSubmit} errorStatus={error} />
+      {status === 'pending' && <Spiner />}
+      {images.length !== 0 && (
+        <ImageGallery
+          loadMore={loadMore}
+          imagesInfo={images}
+          toggleModal={toggleModal}
+        />
+      )}
+      {showModal && <Modal image={modalImage} closeModal={toggleModal} />}
+    </>
+  );
+};
