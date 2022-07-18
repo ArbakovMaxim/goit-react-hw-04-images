@@ -32,7 +32,7 @@ export const Modal = ({ image, closeModal }) => {
     <Overlay onClick={handleBackdrop}>
       {status === 'pedding' && <Spiner />}
       <ModalImage
-        onLoad={setStatus('idle')}
+        onLoad={() => setStatus('idle')}
         src={image}
         alt="велике зображення"
       />
