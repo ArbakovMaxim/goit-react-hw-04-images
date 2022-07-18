@@ -15,7 +15,7 @@ export const Modal = ({ image, closeModal }) => {
     return () => {
       window.removeEventListener('keydown', handleEscape);
     };
-  }, []);
+  });
 
   const handleEscape = e => {
     if (e.code === 'Escape') {
