@@ -6,26 +6,21 @@ import { Overlay, ModalImage } from './Modal.styled';
 const rootModal = document.querySelector('#root-modal');
 
 export const Modal = ({ image, closeModal }) => {
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState('pedding');
 
   useEffect(() => {
+    const handleEscape = e => {
+      if (e.code === 'Escape') {
+        closeModal();
+      }
+    };
+
     window.addEventListener('keydown', handleEscape);
-    startSpiner();
 
     return () => {
       window.removeEventListener('keydown', handleEscape);
     };
-  });
-
-  const handleEscape = e => {
-    if (e.code === 'Escape') {
-      closeModal();
-    }
-  };
-
-  const startSpiner = () => {
-    setStatus('pedding');
-  };
+  }, [closeModal]);
 
   const handleBackdrop = e => {
     if (e.currentTarget === e.target) {
