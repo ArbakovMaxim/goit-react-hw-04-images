@@ -19,26 +19,25 @@ export const App = () => {
     if (searchValue === '') {
       return;
     }
-    const fetchGallery = () => {
-      apiImage(searchValue, page)
-        .then(response => {
-          setImages(prevState => [...prevState, ...response]);
-          setStatus('rejected');
-          setError('');
-          if (response.length === 0) {
-            setError('По вашему запросу не чего не найдено!');
-          }
-        })
-        .catch(error => {
-          setError(error.message);
-          setStatus('rejected');
-        });
+    const fetchGallery = async (searchValue, page) => {
+      try {
+        const image = await apiImage(searchValue, page);
+        setImages(prevState => [...prevState, ...image]);
+        setError('');
+        if (image.length === 0) {
+          setError('По вашему запросу не чего не найдено!');
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setStatus('rejected');
+      }
     };
     setStatus('pending');
     if (page === 1) {
       setImages([]);
     }
-    fetchGallery();
+    fetchGallery(searchValue, page);
   }, [searchValue, page]);
 
   const onSubmit = event => {
