@@ -26,11 +26,12 @@ export const App = () => {
         const image = await apiImage(searchValue, page);
         setImages(prevState => [...prevState, ...image.hits]);
         setError('');
+        if (image.hits.length === 0) {
+          setError('По вашему запросу не чего не найдено!');
+          return;
+        }
         if (page === 1) {
           toast.info(`total image =  ${image.total}`);
-        }
-        if (image.length === 0) {
-          setError('По вашему запросу не чего не найдено!');
         }
       } catch (error) {
         setError(error.message);
