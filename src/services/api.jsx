@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Key } from 'Constans/constans';
+import { Key } from 'constants/constants';
 
 axios.defaults.baseURL = 'https://pixabay.com/api/';
 
@@ -15,5 +15,5 @@ export async function apiImage(searchValue, page) {
       per_page: 12,
     },
   });
-  return response.data.hits;
+  return response.data;
 }

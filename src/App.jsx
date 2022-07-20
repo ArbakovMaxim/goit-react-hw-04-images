@@ -1,3 +1,5 @@
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify';
 import { Searchbar } from 'components/Searchbar/Searchbar';
 import { useState } from 'react';
 import { ImageGallery } from './components/ImageGallery/ImageGallery';
@@ -10,7 +12,7 @@ export const App = () => {
   const [searchValue, setSearchValue] = useState('');
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState(false);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalImage, setModalImage] = useState(null);
@@ -22,18 +24,21 @@ export const App = () => {
     const fetchGallery = async (searchValue, page) => {
       try {
         const image = await apiImage(searchValue, page);
-        setImages(prevState => [...prevState, ...image]);
+        setImages(prevState => [...prevState, ...image.hits]);
         setError('');
+        if (page === 1) {
+          toast.info(`total image =  ${image.total}`);
+        }
         if (image.length === 0) {
           setError('По вашему запросу не чего не найдено!');
         }
       } catch (error) {
         setError(error.message);
       } finally {
-        setStatus('rejected');
+        setStatus(false);
       }
     };
-    setStatus('pending');
+    setStatus(true);
     if (page === 1) {
       setImages([]);
     }
@@ -44,11 +49,11 @@ export const App = () => {
     if (event.trim() !== '') {
       setSearchValue(event);
       setPage(1);
-      setStatus('pending');
+    } else {
+      setError('В ведите запрос');
+      setImages([]);
+      setStatus(false);
     }
-    setError('В ведите запрос');
-    setImages([]);
-    setStatus('rejected');
   };
 
   const toggleModal = largeImageURL => {
@@ -63,7 +68,7 @@ export const App = () => {
   return (
     <>
       <Searchbar onSubmit={onSubmit} errorStatus={error} />
-      {status === 'pending' && <Spiner />}
+      {status === true && <Spiner />}
       {images.length !== 0 && (
         <ImageGallery
           loadMore={loadMore}
@@ -72,6 +77,7 @@ export const App = () => {
         />
       )}
       {showModal && <Modal image={modalImage} closeModal={toggleModal} />}
+      <ToastContainer />
     </>
   );
 };
